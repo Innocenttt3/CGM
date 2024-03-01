@@ -2,6 +2,8 @@ package org.example;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import org.apache.commons.math3.util.Pair;
@@ -12,7 +14,9 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-public class Pojedynczy_rekord {
+public class Wartosci_bazy {
+
+
     public int ilosc_poziomow_analityki;
     public char[] kod_roku = new char[2];
     public int obecny_poziom;
@@ -20,7 +24,8 @@ public class Pojedynczy_rekord {
     public String sub_konto;
     public String prekonto;
     public String opis;
-    public char[] indywidualna_analityka = new char[ilosc_poziomow_analityki];
+    public List<Character> indywidualna_analityka = new ArrayList<>();
+
 
     private String extract_sub_konto(String inputString, int n) {
         char character = '-';
@@ -78,7 +83,7 @@ public class Pojedynczy_rekord {
                 }
             }
         }
-        if (amount > 1){
+        if (amount > 1) {
             while (!positions.isEmpty()) {
                 if (positions.size() > 1) {
                     int startIndex = positions.get(positions.size() - 2) + 1;
@@ -93,7 +98,6 @@ public class Pojedynczy_rekord {
         }
         return result;
     }
-
 
 
     private String zwroc_nr_konta(String inputString) {
@@ -124,12 +128,14 @@ public class Pojedynczy_rekord {
         return new Pair<>(modifiedString, containsAsterisk);
     }
 
-    public void zaczytaj_dane(String sciezka_do_pliku) throws IOException {
+    public Wczytane_dane zaczytaj_dane(String sciezka_do_pliku) throws IOException {
+        Wczytane_dane result_dane = new Wczytane_dane();
         FileInputStream plik_wejsciowy = new FileInputStream((sciezka_do_pliku));
         XSSFWorkbook plik_wejsciowy_excel = new XSSFWorkbook(plik_wejsciowy);
         Sheet pierwszy_arkusz = plik_wejsciowy_excel.getSheetAt(0);
         for (Row row : pierwszy_arkusz) {
             if (row.getRowNum() > 1) {
+                Wartosci_bazy pojedynczy_rekord = new Wartosci_bazy();
                 Cell symbol_konta = row.getCell(0);
                 Cell nazwa = row.getCell(1);
                 Cell kod_roku_excel = row.getCell(2);
@@ -147,22 +153,27 @@ public class Pojedynczy_rekord {
 
                 //cala linijka wejsciowa jest juz odczytana czas na jej przetworzenie
 
-                kod_roku = kod_roku_excel.getStringCellValue().toCharArray();
-                ilosc_poziomow_analityki = oblicz_poziom(tmp);
+                pojedynczy_rekord.kod_roku = kod_roku_excel.getStringCellValue().toCharArray();
+                pojedynczy_rekord.ilosc_poziomow_analityki = oblicz_poziom(tmp);
                 Pair<String, Boolean> result = utnij_gwiazdki(tmp);
                 if (result.getSecond()) {
-                    obecny_poziom = oblicz_poziom(result.getFirst()) - 1;
+                    pojedynczy_rekord.obecny_poziom = oblicz_poziom(result.getFirst()) - 1;
                 } else {
-                    obecny_poziom = oblicz_poziom(result.getFirst());
+                    pojedynczy_rekord.obecny_poziom = oblicz_poziom(result.getFirst());
                 }
-                nr_konta = zwroc_nr_konta(tmp);
-                sub_konto = extract_sub_konto(tmp, obecny_poziom);
-                prekonto = extract_prekonto(tmp, obecny_poziom);
-                opis = tmp2;
-
+                pojedynczy_rekord.nr_konta = zwroc_nr_konta(tmp);
+                pojedynczy_rekord.sub_konto = extract_sub_konto(tmp, obecny_poziom);
+                pojedynczy_rekord.prekonto = extract_prekonto(tmp, obecny_poziom);
+                pojedynczy_rekord.opis = tmp2;
+                if (pojedynczy_rekord.ilosc_poziomow_analityki > 0) {
+                    for (int i = 0; i < pojedynczy_rekord.ilosc_poziomow_analityki; i++) {
+                        pojedynczy_rekord.indywidualna_analityka.add('1');
+                    }
+                }
+                result_dane.dane.add(pojedynczy_rekord);
             }
-
         }
+        return result_dane;
     }
 
 }
