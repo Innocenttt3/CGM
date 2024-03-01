@@ -18,7 +18,7 @@ public class Pojedynczy_rekord {
     public int obecny_poziom;
     public String nr_konta;
     public String sub_konto;
-    public int prekonto;
+    public String prekonto;
     public String opis;
     public char[] indywidualna_analityka = new char[ilosc_poziomow_analityki];
 
@@ -77,12 +77,23 @@ public class Pojedynczy_rekord {
                     return "pusto";
                 }
             }
-            while(!positions.isEmpty()){
-
+        }
+        if (amount > 1){
+            while (!positions.isEmpty()) {
+                if (positions.size() > 1) {
+                    int startIndex = positions.get(positions.size() - 2) + 1;
+                    int endIndex = positions.lastElement();
+                    String addToResult = inputString.substring(startIndex, endIndex);
+                    result = addToResult + "     " + result;
+                    positions.remove(positions.size() - 1);
+                } else {
+                    break;
+                }
             }
         }
-        return "blad";
+        return result;
     }
+
 
 
     private String zwroc_nr_konta(String inputString) {
@@ -146,8 +157,8 @@ public class Pojedynczy_rekord {
                 }
                 nr_konta = zwroc_nr_konta(tmp);
                 sub_konto = extract_sub_konto(tmp, obecny_poziom);
-                String teestowe = extract_prekonto(tmp);
-                System.out.println(row.getRowNum() + 1 + " " + teestowe);
+                prekonto = extract_prekonto(tmp, obecny_poziom);
+                opis = tmp2;
 
             }
 
