@@ -35,7 +35,9 @@ public class MainFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String string1 = textField1.getText();
                 String string2 = textField2.getText();
-
+                if(!string2.contains(".csv")){
+                    string2 += ".csv";
+                }
                 Wartosci_bazy main = new Wartosci_bazy();
                 try {
                     main.zaczytaj_dane(string1, string2);

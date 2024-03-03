@@ -10,6 +10,8 @@ import org.apache.commons.math3.util.Pair;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 
+import java.util.Arrays;
+
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -24,6 +26,7 @@ public class Wartosci_bazy {
     public String prekonto;
     public String opis;
     public String indywidualna_analityka = "111";
+    public Integer[] struktura_konta = new Integer[9];
     public String gotowy_rekord;
 
 
@@ -140,12 +143,31 @@ public class Wartosci_bazy {
         return new Pair<>(modifiedString, containsAsterisk);
     }
 
+    public static void policz_poziomy(String input, Integer[] arr) {
+        int startIndex = 0;
+        int endIndex;
+        int i = 0;
+
+        while ((endIndex = input.indexOf('-', startIndex)) != -1) {
+            int length = endIndex - startIndex;
+            arr[i] = length;
+            i++;
+            startIndex = endIndex + 1;
+        }
+
+
+        if (startIndex < input.length()) {
+            arr[i] = input.length() - startIndex;
+        }
+    }
+
+
     public void zaczytaj_dane(String sciezka_do_pliku, String sciezka_do_pliku_csv) throws IOException {
         FileInputStream plik_wejsciowy = new FileInputStream((sciezka_do_pliku));
         XSSFWorkbook plik_wejsciowy_excel = new XSSFWorkbook(plik_wejsciowy);
         Sheet pierwszy_arkusz = plik_wejsciowy_excel.getSheetAt(0);
         try (PrintWriter writer = new PrintWriter(new File(sciezka_do_pliku_csv))) {
-            writer.println("KOD_ROKU;POZIOM;NR_KONTA;SUBKONTO;PREKONTO;INDYWIDUALNYPOZIOMANALITYKI;OPIS");
+            writer.println("KOD_ROKU;POZIOM;NR_KONTA;SUBKONTO;PREKONTO;INDYPOZIOMY;OPIS");
             for (Row row : pierwszy_arkusz) {
                 if (row.getRowNum() > 1) {
                     Cell symbol_konta = row.getCell(0);
@@ -173,8 +195,20 @@ public class Wartosci_bazy {
                         obecny_poziom = oblicz_poziom(result.getFirst());
                     }
                     nr_konta = zwroc_nr_konta(tmp);
-                    sub_konto = extract_sub_konto(tmp, obecny_poziom);
-                    prekonto = extract_prekonto(tmp, obecny_poziom);
+                    if (!obecny_poziom.equals(0)) {
+                        prekonto = extract_prekonto(tmp, obecny_poziom);
+                        sub_konto = extract_sub_konto(tmp, obecny_poziom);
+                    } else {
+                        sub_konto = ilosc_poziomow_analityki.toString();
+                        Arrays.fill(struktura_konta, 0);
+                        policz_poziomy(tmp, struktura_konta);
+                        StringBuilder sb = new StringBuilder();
+                        for (Integer value : struktura_konta) {
+                            sb.append(value);
+                        }
+                        prekonto = sb.toString();
+
+                    }
                     opis = tmp2;
                     gotowy_rekord = kod_roku + ";" + obecny_poziom.toString() + ";" + nr_konta + ";" + sub_konto + ";" + prekonto + ";" + indywidualna_analityka + ";" + opis;
                     writer.println(gotowy_rekord);
