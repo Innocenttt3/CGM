@@ -1,9 +1,9 @@
 package org.example;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.PrintWriter;
 import java.util.Vector;
 
 import org.apache.commons.math3.util.Pair;
@@ -16,18 +16,19 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class Wartosci_bazy {
 
-
-    public int ilosc_poziomow_analityki;
-    public char[] kod_roku = new char[2];
-    public int obecny_poziom;
+    public Integer ilosc_poziomow_analityki;
+    public String kod_roku;
+    public Integer obecny_poziom;
     public String nr_konta;
     public String sub_konto;
     public String prekonto;
     public String opis;
-    public List<Character> indywidualna_analityka = new ArrayList<>();
+    public String indywidualna_analityka = "111";
+    public String gotowy_rekord;
 
 
     private String extract_sub_konto(String inputString, int n) {
+        String result = "";
         char character = '-';
         int lastPosition = 0;
         if (n == 0) {
@@ -40,15 +41,21 @@ public class Wartosci_bazy {
             if (lastPosition == 0) {
                 return inputString;
             } else {
-                return inputString.substring(0, lastPosition);
+                result = inputString.substring(0, lastPosition);
+                return result;
             }
-        } else if (obecny_poziom == ilosc_poziomow_analityki) {
+        } else if (obecny_poziom.equals(ilosc_poziomow_analityki)) {
             for (int i = 0; i < inputString.length(); i++) {
                 if (inputString.charAt(i) == character) {
                     lastPosition = i;
                 }
             }
-            return inputString.substring(lastPosition + 1);
+            result = inputString.substring(lastPosition + 1);
+            if (result.length() < 2) {
+                String tmpResult = result;
+                result = "0" + tmpResult;
+            }
+            return result;
         } else {
             int amount = 0;
             Vector<Integer> positions = new Vector<>();
@@ -59,7 +66,12 @@ public class Wartosci_bazy {
                     if (amount == n + 1) {
                         int lastIndex = positions.lastElement();
                         int startIndex = positions.get(positions.size() - 2) + 1;
-                        return inputString.substring(startIndex, lastIndex);
+                        result = inputString.substring(startIndex, lastIndex);
+                        if (result.length() < 2) {
+                            String tmpResult = result;
+                            result = "0" + tmpResult;
+                        }
+                        return result;
                     }
                 }
             }
@@ -128,52 +140,46 @@ public class Wartosci_bazy {
         return new Pair<>(modifiedString, containsAsterisk);
     }
 
-    public Wczytane_dane zaczytaj_dane(String sciezka_do_pliku) throws IOException {
-        Wczytane_dane result_dane = new Wczytane_dane();
+    public void zaczytaj_dane(String sciezka_do_pliku, String sciezka_do_pliku_csv) throws IOException {
         FileInputStream plik_wejsciowy = new FileInputStream((sciezka_do_pliku));
         XSSFWorkbook plik_wejsciowy_excel = new XSSFWorkbook(plik_wejsciowy);
         Sheet pierwszy_arkusz = plik_wejsciowy_excel.getSheetAt(0);
-        for (Row row : pierwszy_arkusz) {
-            if (row.getRowNum() > 1) {
-                Wartosci_bazy pojedynczy_rekord = new Wartosci_bazy();
-                Cell symbol_konta = row.getCell(0);
-                Cell nazwa = row.getCell(1);
-                Cell kod_roku_excel = row.getCell(2);
-                String tmp = "";
-                if (symbol_konta.getCellType() == CellType.NUMERIC) {
-                    double tmpNumeric = symbol_konta.getNumericCellValue();
-                    int tmpInt = (int) tmpNumeric;
-                    tmp = String.valueOf(tmpInt);
-                } else if (symbol_konta.getCellType() == CellType.STRING) {
-                    tmp = symbol_konta.getStringCellValue();
-                }
-                String rowId = row.getRowNum() + 1 + "";
-                String tmp2 = nazwa.getStringCellValue();
-
-
-                //cala linijka wejsciowa jest juz odczytana czas na jej przetworzenie
-
-                pojedynczy_rekord.kod_roku = kod_roku_excel.getStringCellValue().toCharArray();
-                pojedynczy_rekord.ilosc_poziomow_analityki = oblicz_poziom(tmp);
-                Pair<String, Boolean> result = utnij_gwiazdki(tmp);
-                if (result.getSecond()) {
-                    pojedynczy_rekord.obecny_poziom = oblicz_poziom(result.getFirst()) - 1;
-                } else {
-                    pojedynczy_rekord.obecny_poziom = oblicz_poziom(result.getFirst());
-                }
-                pojedynczy_rekord.nr_konta = zwroc_nr_konta(tmp);
-                pojedynczy_rekord.sub_konto = extract_sub_konto(tmp, obecny_poziom);
-                pojedynczy_rekord.prekonto = extract_prekonto(tmp, obecny_poziom);
-                pojedynczy_rekord.opis = tmp2;
-                if (pojedynczy_rekord.ilosc_poziomow_analityki > 0) {
-                    for (int i = 0; i < pojedynczy_rekord.ilosc_poziomow_analityki; i++) {
-                        pojedynczy_rekord.indywidualna_analityka.add('1');
+        try (PrintWriter writer = new PrintWriter(new File(sciezka_do_pliku_csv))) {
+            writer.println("KOD_ROKU;POZIOM;NR_KONTA;SUBKONTO;PREKONTO;INDYWIDUALNYPOZIOMANALITYKI;OPIS");
+            for (Row row : pierwszy_arkusz) {
+                if (row.getRowNum() > 1) {
+                    Cell symbol_konta = row.getCell(0);
+                    Cell nazwa = row.getCell(1);
+                    Cell kod_roku_excel = row.getCell(2);
+                    String tmp = "";
+                    if (symbol_konta.getCellType() == CellType.NUMERIC) {
+                        double tmpNumeric = symbol_konta.getNumericCellValue();
+                        int tmpInt = (int) tmpNumeric;
+                        tmp = String.valueOf(tmpInt);
+                    } else if (symbol_konta.getCellType() == CellType.STRING) {
+                        tmp = symbol_konta.getStringCellValue();
                     }
+                    String rowId = row.getRowNum() + 1 + "";
+                    String tmp2 = nazwa.getStringCellValue();
+
+                    //cala linijka wejsciowa jest juz odczytana czas na jej przetworzenie
+
+                    kod_roku = kod_roku_excel.getStringCellValue();
+                    ilosc_poziomow_analityki = oblicz_poziom(tmp);
+                    Pair<String, Boolean> result = utnij_gwiazdki(tmp);
+                    if (result.getSecond()) {
+                        obecny_poziom = oblicz_poziom(result.getFirst()) - 1;
+                    } else {
+                        obecny_poziom = oblicz_poziom(result.getFirst());
+                    }
+                    nr_konta = zwroc_nr_konta(tmp);
+                    sub_konto = extract_sub_konto(tmp, obecny_poziom);
+                    prekonto = extract_prekonto(tmp, obecny_poziom);
+                    opis = tmp2;
+                    gotowy_rekord = kod_roku + ";" + obecny_poziom.toString() + ";" + nr_konta + ";" + sub_konto + ";" + prekonto + ";" + indywidualna_analityka + ";" + opis;
+                    writer.println(gotowy_rekord);
                 }
-                result_dane.dane.add(pojedynczy_rekord);
             }
         }
-        return result_dane;
     }
-
 }
