@@ -81,10 +81,10 @@ public class Pojedynczy_rekord {
             return "";
         }
     }
+    //TODO - wypelnienei danego w argumentie stringa zerami i zwrocenie go
     private String wypelnij_zerami(String input, int[] arr){
         String result = "";
-        input = extract_poziom(input);
-        while() //uzyc polimorfizumu do extract poziom
+       //uzyc polimorfizumu do extract poziom DO
 
     }
 
