@@ -81,17 +81,42 @@ public class Pojedynczy_rekord {
             return "";
         }
     }
-    //TODO - wypelnienei danego w argumentie stringa zerami i zwrocenie go
-    private String wypelnij_zerami(String input, int[] arr){
+    
+    public static String wypelnij_zerami(String input, int[] arr) {
+        String start = extract_poziom(input);
         String result = "";
-       //uzyc polimorfizumu do extract poziom DO
-
+        result += start;
+        String tmp_poziom;
+        int i = 0;
+        while (input.contains("-")) {
+            input = extract_nizszy_poziom(input);
+            tmp_poziom = extract_poziom(input);
+            result += "-";
+            int potrzebne_zera = arr[i] - tmp_poziom.length();
+            if (potrzebne_zera > 0) {
+                for (int j = 0; j < potrzebne_zera; j++) {
+                    result += "0";
+                }
+            }
+            result += tmp_poziom;
+            i++;
+        }
+        return result;
     }
 
     public static String extract_poziom(String input) {
         int indexOfDash = input.indexOf('-');
         if (indexOfDash != -1) {
             return input.substring(0, indexOfDash);
+        } else {
+            return input;
+        }
+    }
+
+    public static String extract_nizszy_poziom(String input) {
+        int indexOfDash = input.indexOf('-');
+        if (indexOfDash != -1) {
+            return input.substring(indexOfDash + 1, input.length());
         } else {
             return input;
         }
