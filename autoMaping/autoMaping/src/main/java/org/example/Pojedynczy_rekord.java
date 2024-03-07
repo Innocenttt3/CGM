@@ -27,7 +27,7 @@ public class Pojedynczy_rekord {
         Sheet pierwszy_arkusz = plik_wejsciowy_excel.getSheetAt(0);
 
         for (Row row : pierwszy_arkusz) {
-            if (row.getRowNum() > 1) {
+            if (row.getRowNum() > 0) {
                 Cell komorka_klucz = row.getCell(0);
                 String klucz = getCellValueAsString(komorka_klucz);
 
@@ -57,11 +57,13 @@ public class Pojedynczy_rekord {
                 if (tmp.getCellType() == CellType.NUMERIC) {
                     przemapowany_numer_konta = String.valueOf(tmp.getNumericCellValue());
                 } else if (tmp.getCellType() == CellType.STRING) {
-                    konto_syntetyczne = (String.valueOf(tmp.getCellType()));
+                    obecny_numer_konta = tmp.getStringCellValue();
+                    konto_syntetyczne = extract_poziom(obecny_numer_konta);
                     if (!wzory.containsKey(konto_syntetyczne)) {
-                        System.out.println("brak wzoru dla konta:" + konto_syntetyczne);
+                        System.out.println("brak wzoru dla konta:" + konto_syntetyczne + "we wzorach");
                     } else {
-                        wzory.get(konto_syntetyczne);
+                        przemapowany_numer_konta = wypelnij_zerami(obecny_numer_konta, wzory.get(konto_syntetyczne));
+                        System.out.println(przemapowany_numer_konta);
                     }
                 }
             }
@@ -81,7 +83,7 @@ public class Pojedynczy_rekord {
             return "";
         }
     }
-    
+
     public static String wypelnij_zerami(String input, int[] arr) {
         String start = extract_poziom(input);
         String result = "";
