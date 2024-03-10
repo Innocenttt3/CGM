@@ -3,6 +3,7 @@ package org.example;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import javax.swing.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,9 +31,11 @@ public class Pojedynczy_rekord {
             if (row.getRowNum() > 0) {
                 Cell komorka_klucz = row.getCell(0);
                 String klucz = getCellValueAsString(komorka_klucz);
+                klucz = klucz.trim();
 
                 Cell komorka_poziomy = row.getCell(1);
                 String poziomy = getCellValueAsString(komorka_poziomy);
+                poziomy = poziomy.trim();
 
                 int[] nowe_poziomy = new int[9];
                 int i = 0;
@@ -46,31 +49,32 @@ public class Pojedynczy_rekord {
         plik_wejsciowy_excel.close();
         plik_wejsciowy.close();
     }
-    //TODO dsadsadsa
+
     public void zaczytaj_dane(String sciezka_do_pliku, String sciezka_do_planu_kont) throws IOException {
         FileInputStream plik_wejsciowy = new FileInputStream((sciezka_do_pliku));
         XSSFWorkbook plik_wejsciowy_excel = new XSSFWorkbook(plik_wejsciowy);
         Sheet pierwszy_arkusz = plik_wejsciowy_excel.getSheetAt(0);
         zaczytaj_pelny_plan_kont(sciezka_do_planu_kont);
         for (Row row : pierwszy_arkusz) {
-            if (row.getRowNum() > 1) {
+            if (row.getRowNum() > 0) {
                 Cell tmp = row.getCell(0);
                 if (tmp.getCellType() == CellType.NUMERIC) {
                     przemapowany_numer_konta = String.valueOf(tmp.getNumericCellValue());
+                    przemapowany_numer_konta = przemapowany_numer_konta.trim();
                 } else if (tmp.getCellType() == CellType.STRING) {
                     obecny_numer_konta = tmp.getStringCellValue();
+                    obecny_numer_konta = obecny_numer_konta.trim();
                     konto_syntetyczne = extract_poziom(obecny_numer_konta);
                     if (!wzory.containsKey(konto_syntetyczne)) {
                         System.out.println("brak wzoru dla konta:" + konto_syntetyczne + "we wzorach");
                     } else {
                         przemapowany_numer_konta = wypelnij_zerami(obecny_numer_konta, wzory.get(konto_syntetyczne));
+                        przemapowany_numer_konta = przemapowany_numer_konta.trim();
+                        System.out.println(przemapowany_numer_konta);
                         Cell cell = row.createCell(1);
                         cell.setCellValue(przemapowany_numer_konta);
-                        if (!pelny_plan_kont.contains(przemapowany_numer_konta)) {
-                            CellStyle style = plik_wejsciowy_excel.createCellStyle();
-                            style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-                            style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-                            cell.setCellStyle(style);
+                        if (pelny_plan_kont.contains(przemapowany_numer_konta)) {
+                            System.out.println("zawiera");
                         }
                     }
                 }
@@ -87,7 +91,7 @@ public class Pojedynczy_rekord {
         Sheet pierwszy_arkusz = plik_wejsciowy_excel.getSheetAt(0);
         for (Row row : pierwszy_arkusz) {
             Cell tmp = row.getCell(2);
-            pelny_plan_kont.add(tmp.getStringCellValue());
+            pelny_plan_kont.add(tmp.getStringCellValue().trim());
         }
     }
 
@@ -96,9 +100,9 @@ public class Pojedynczy_rekord {
             return "";
         }
         if (cell.getCellType() == CellType.STRING) {
-            return cell.getStringCellValue();
+            return cell.getStringCellValue().trim();
         } else if (cell.getCellType() == CellType.NUMERIC) {
-            return String.valueOf((int) cell.getNumericCellValue());
+            return String.valueOf((int) cell.getNumericCellValue()).trim();
         } else {
             System.out.println("Nieobsługiwany typ komórki");
             return "";
@@ -120,9 +124,14 @@ public class Pojedynczy_rekord {
                 for (int j = 0; j < potrzebne_zera; j++) {
                     result += "0";
                 }
+            } else if (potrzebne_zera < 0) {
+                tmp_poziom = tmp_poziom.substring(0, tmp_poziom.length() + potrzebne_zera);
             }
             result += tmp_poziom;
             i++;
+        }
+        if(result.endsWith("-")){
+            result = result.substring(0, result.length()-1);
         }
         return result;
     }
@@ -143,5 +152,12 @@ public class Pojedynczy_rekord {
         } else {
             return input;
         }
+    }
+
+    public static void main(String[] args) throws IOException {
+        Pojedynczy_rekord main = new Pojedynczy_rekord();
+        main.zaczytaj_wzory("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/wzory_14.xlsx");
+        main.zaczytaj_dane("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/Konta_PL14.xlsx",
+                "/Users/kamilgolawski/CGM/CGM-priv/autoMaping/PL14_pelny_plan_kont_2024.xlsx");
     }
 }
