@@ -15,10 +15,11 @@ public class MainFrame extends JFrame {
     private JButton executeButton;
     private JButton browseButton1;
     private JButton browseButton2;
+    private JButton browseButton3; // Dodano nowy przycisk do wyboru pliku
 
     public MainFrame() {
         setTitle("Wczytaj plan kont");
-        setSize(450, 350);
+        setSize(450, 200);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new FlowLayout());
 
@@ -26,19 +27,33 @@ public class MainFrame extends JFrame {
         textField2 = new JTextField(10);
         textField3 = new JTextField(10);
         executeButton = new JButton("Wykonaj");
-        browseButton1 = new JButton("Wybierz plik źródłowy");
-        browseButton2 = new JButton("Wybierz plik docelowy");
+        browseButton1 = new JButton("Wybierz plik z kontami");
+        browseButton2 = new JButton("Wybierz plik ppk");
+        browseButton3 = new JButton("Wybierz nowy plik"); // Inicjalizacja nowego przycisku
 
         add(new JLabel("Plik z kontami"));
         add(textField1);
         add(browseButton1);
-        add(new JLabel("Plik ppk"));
+        add(new JLabel("Plik pelny plan kont"));
         add(textField2);
         add(browseButton2);
         add(new JLabel("Plik ze wzorami kont"));
         add(textField3);
+        add(new JLabel());
+        add(browseButton3);
         add(executeButton);
 
+        browseButton3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                int returnValue = fileChooser.showOpenDialog(null);
+                if (returnValue == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    textField3.setText(selectedFile.getAbsolutePath());
+                }
+            }
+        });
         browseButton1.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -72,8 +87,9 @@ public class MainFrame extends JFrame {
                 Pojedynczy_rekord main = new Pojedynczy_rekord();
                 try {
                     main.zaczytaj_wzory(wzory);
-                    main.zaczytaj_dane(konta, ppk);
-                    JOptionPane.showMessageDialog(null, "Operacja zakończona pomyślnie!");
+                    float result = main.zaczytaj_dane(konta, ppk);
+                    String formattedResult = String.format("%.2f", result);
+                    JOptionPane.showMessageDialog(null, "Operacja zakończona pomyślnie z wynikiem: " + formattedResult + "%");
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(null, "Wystąpił błąd: " + ex.getMessage());
                 }

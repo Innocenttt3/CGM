@@ -49,11 +49,13 @@ public class Pojedynczy_rekord {
         plik_wejsciowy.close();
     }
 
-    public void zaczytaj_dane(String sciezka_do_pliku, String sciezka_do_planu_kont) throws IOException {
+    public float zaczytaj_dane(String sciezka_do_pliku, String sciezka_do_planu_kont) throws IOException {
         int counter = 0;
+
         FileInputStream plik_wejsciowy = new FileInputStream((sciezka_do_pliku));
         XSSFWorkbook plik_wejsciowy_excel = new XSSFWorkbook(plik_wejsciowy);
         Sheet pierwszy_arkusz = plik_wejsciowy_excel.getSheetAt(0);
+        int totalRows = pierwszy_arkusz.getPhysicalNumberOfRows();
         zaczytaj_pelny_plan_kont(sciezka_do_planu_kont);
         for (Row row : pierwszy_arkusz) {
             if (row.getRowNum() > 0) {
@@ -83,7 +85,7 @@ public class Pojedynczy_rekord {
         }
         plik_wejsciowy_excel.write(new FileOutputStream(new File(sciezka_do_pliku)));
         plik_wejsciowy_excel.close();
-        System.out.println(counter);
+        return (float) counter / totalRows;
     }
 
 
@@ -110,10 +112,11 @@ public class Pojedynczy_rekord {
             return "";
         }
     }
-    public String wypelnij_zerami(String input, Vector<Integer> arr){
+
+    public String wypelnij_zerami(String input, Vector<Integer> arr) {
         String result1 = wypelnij_zerami_za(input, arr);
         String result2 = wypelnij_zerami_przed(input, arr);
-        if(pelny_plan_kont.contains(result1)) {
+        if (pelny_plan_kont.contains(result1)) {
             return result1;
         } else if (pelny_plan_kont.contains(result2)) {
             return result2;
@@ -149,13 +152,13 @@ public class Pojedynczy_rekord {
                 }
             }
         }
-        if(result.endsWith("-")){
-            result = result.substring(0, result.length()-1);
+        if (result.endsWith("-")) {
+            result = result.substring(0, result.length() - 1);
         }
-        if(parts.length < arr.size()){
-            for(int i = 0; i < arr.size() - parts.length; i++){
+        if (parts.length < arr.size()) {
+            for (int i = 0; i < arr.size() - parts.length; i++) {
                 result += "-";
-                for (int y = 0; y < arr.elementAt(arr.size()- parts.length + i); y++){
+                for (int y = 0; y < arr.elementAt(arr.size() - parts.length + i); y++) {
                     result += "0";
                 }
             }
@@ -212,10 +215,4 @@ public class Pojedynczy_rekord {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        Pojedynczy_rekord main = new Pojedynczy_rekord();
-        main.zaczytaj_wzory("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/wzory_14.xlsx");
-        main.zaczytaj_dane("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/Konta_PL14.xlsx",
-                "/Users/kamilgolawski/CGM/CGM-priv/autoMaping/PL14_pelny_plan_kont_2024.xlsx");
-    }
 }
