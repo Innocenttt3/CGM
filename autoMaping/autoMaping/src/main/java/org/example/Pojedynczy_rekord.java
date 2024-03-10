@@ -5,16 +5,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import javax.swing.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class Pojedynczy_rekord {
 
     private String obecny_numer_konta;
     private String przemapowany_numer_konta;
     private String konto_syntetyczne;
-    public HashMap<String, int[]> wzory;
+    public HashMap<String, Vector<Integer>> wzory;
     public List<String> pelny_plan_kont;
 
     public Pojedynczy_rekord() {
@@ -37,11 +35,12 @@ public class Pojedynczy_rekord {
                 String poziomy = getCellValueAsString(komorka_poziomy);
                 poziomy = poziomy.trim();
 
-                int[] nowe_poziomy = new int[9];
-                int i = 0;
+                Vector<Integer> nowe_poziomy = new Vector<>();
                 for (char pojedyncza_literka : poziomy.toCharArray()) {
-                    nowe_poziomy[i] = Character.getNumericValue(pojedyncza_literka);
-                    i++;
+                    int tmp = Character.getNumericValue(pojedyncza_literka);
+                    if (tmp != 0) {
+                        nowe_poziomy.add(Character.getNumericValue(pojedyncza_literka));
+                    }
                 }
                 wzory.put(klucz, nowe_poziomy);
             }
@@ -51,6 +50,7 @@ public class Pojedynczy_rekord {
     }
 
     public void zaczytaj_dane(String sciezka_do_pliku, String sciezka_do_planu_kont) throws IOException {
+        int counter = 0;
         FileInputStream plik_wejsciowy = new FileInputStream((sciezka_do_pliku));
         XSSFWorkbook plik_wejsciowy_excel = new XSSFWorkbook(plik_wejsciowy);
         Sheet pierwszy_arkusz = plik_wejsciowy_excel.getSheetAt(0);
@@ -75,6 +75,7 @@ public class Pojedynczy_rekord {
                         cell.setCellValue(przemapowany_numer_konta);
                         if (pelny_plan_kont.contains(przemapowany_numer_konta)) {
                             System.out.println("zawiera");
+                            counter++;
                         }
                     }
                 }
@@ -82,6 +83,7 @@ public class Pojedynczy_rekord {
         }
         plik_wejsciowy_excel.write(new FileOutputStream(new File(sciezka_do_pliku)));
         plik_wejsciowy_excel.close();
+        System.out.println(counter);
     }
 
 
@@ -108,30 +110,86 @@ public class Pojedynczy_rekord {
             return "";
         }
     }
+    public String wypelnij_zerami(String input, Vector<Integer> arr){
+        String result1 = wypelnij_zerami_za(input, arr);
+        String result2 = wypelnij_zerami_przed(input, arr);
+        if(pelny_plan_kont.contains(result1)) {
+            return result1;
+        } else if (pelny_plan_kont.contains(result2)) {
+            return result2;
+        }
+        return input;
+    }
 
-    public static String wypelnij_zerami(String input, int[] arr) {
-        String start = extract_poziom(input);
+    public static String wypelnij_zerami_za(String input, Vector<Integer> arr) {
+        String konto_sys = extract_poziom(input);
         String result = "";
-        result += start;
-        String tmp_poziom;
-        int i = 0;
-        while (input.contains("-")) {
-            input = extract_nizszy_poziom(input);
-            tmp_poziom = extract_poziom(input);
-            result += "-";
-            int potrzebne_zera = arr[i] - tmp_poziom.length();
-            if (potrzebne_zera > 0) {
-                for (int j = 0; j < potrzebne_zera; j++) {
+        result += konto_sys;
+        input = extract_nizszy_poziom(input);
+        String[] parts = input.split("-");
+        for (int i = 0; i < parts.length && i < arr.size(); i++) {
+            if (arr.elementAt(i) == parts[i].length()) {
+                result += "-" + parts[i];
+            } else if (arr.elementAt(i) > parts[i].length()) {
+                result += "-";
+                result += parts[i];
+                for (int x = 0; x < arr.elementAt(i) - parts[i].length(); x++) {
                     result += "0";
                 }
-            } else if (potrzebne_zera < 0) {
-                tmp_poziom = tmp_poziom.substring(0, tmp_poziom.length() + potrzebne_zera);
+            } else if (arr.elementAt(i) < parts[i].length()) {
+                result += "-";
+                if (parts[i].endsWith("00")) {
+                    result += parts[i].substring(0, arr.elementAt(i));
+                } else if (parts[i].startsWith("00")) {
+                    result += parts[i].substring(parts[i].length() - arr.elementAt(i), parts[i].length() - arr.elementAt(i) + arr.elementAt(1));
+                } else if (parts[i].endsWith("0")) {
+                    result += parts[i].substring(0, arr.elementAt(i));
+                } else if (parts[i].startsWith("0")) {
+                    result += parts[i].substring(parts[i].length() - arr.elementAt(i), parts[i].length() - arr.elementAt(i) + arr.elementAt(1));
+                }
             }
-            result += tmp_poziom;
-            i++;
         }
         if(result.endsWith("-")){
             result = result.substring(0, result.length()-1);
+        }
+        if(parts.length < arr.size()){
+            for(int i = 0; i < arr.size() - parts.length; i++){
+                result += "-";
+                for (int y = 0; y < arr.elementAt(arr.size()- parts.length + i); y++){
+                    result += "0";
+                }
+            }
+        }
+        return result;
+    }
+
+    public static String wypelnij_zerami_przed(String input, Vector<Integer> arr) {
+        String konto_sys = extract_poziom(input);
+        String result = "";
+        result += konto_sys;
+        input = extract_nizszy_poziom(input);
+        String[] parts = input.split("-");
+        for (int i = 0; i < parts.length && i < arr.size(); i++) {
+            if (arr.elementAt(i) == parts[i].length()) {
+                result += "-" + parts[i];
+            } else if (arr.elementAt(i) > parts[i].length()) {
+                result += "-";
+                for (int x = 0; x < arr.elementAt(i) - parts[i].length(); x++) {
+                    result += "0";
+                }
+                result += parts[i];
+            } else if (arr.elementAt(i) < parts[i].length()) {
+                result += "-";
+                if (parts[i].endsWith("00")) {
+                    result += parts[i].substring(0, arr.elementAt(i));
+                } else if (parts[i].startsWith("00")) {
+                    result += parts[i].substring(parts[i].length() - arr.elementAt(i), parts[i].length() - arr.elementAt(i) + arr.elementAt(1));
+                } else if (parts[i].endsWith("0")) {
+                    result += parts[i].substring(0, arr.elementAt(i));
+                } else if (parts[i].startsWith("0")) {
+                    result += parts[i].substring(parts[i].length() - arr.elementAt(i), parts[i].length() - arr.elementAt(i) + arr.elementAt(1));
+                }
+            }
         }
         return result;
     }
@@ -148,7 +206,7 @@ public class Pojedynczy_rekord {
     public static String extract_nizszy_poziom(String input) {
         int indexOfDash = input.indexOf('-');
         if (indexOfDash != -1) {
-            return input.substring(indexOfDash + 1, input.length());
+            return input.substring(indexOfDash + 1);
         } else {
             return input;
         }
