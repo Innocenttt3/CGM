@@ -88,8 +88,8 @@ public class MainFrame extends JFrame {
                 try {
                     main.zaczytaj_wzory(wzory);
                     float result = main.zaczytaj_dane(konta, ppk);
-                    String formattedResult = String.format("%.2f", result);
-                    JOptionPane.showMessageDialog(null, "Operacja zakończona pomyślnie z wynikiem: " + formattedResult + "%");
+                    String formattedResult = String.format("%.0f%%", result * 100);
+                    JOptionPane.showMessageDialog(null, "Operacja zakończona pomyślnie z wynikiem: " + formattedResult);
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(null, "Wystąpił błąd: " + ex.getMessage());
                 }

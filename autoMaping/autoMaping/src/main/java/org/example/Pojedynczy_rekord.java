@@ -74,10 +74,14 @@ public class Pojedynczy_rekord {
                         przemapowany_numer_konta = przemapowany_numer_konta.trim();
                         System.out.println(przemapowany_numer_konta);
                         Cell cell = row.createCell(1);
+                        Cell czy_zawiera = row.createCell(2);
                         cell.setCellValue(przemapowany_numer_konta);
                         if (pelny_plan_kont.contains(przemapowany_numer_konta)) {
                             System.out.println("zawiera");
                             counter++;
+                            czy_zawiera.setCellValue("TAK");
+                        } else {
+                            czy_zawiera.setCellValue("NIE");
                         }
                     }
                 }
