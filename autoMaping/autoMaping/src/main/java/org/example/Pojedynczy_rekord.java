@@ -122,6 +122,9 @@ public class Pojedynczy_rekord {
         if (result2.endsWith("-")) {
             result2 = result2.substring(0, result2.length() - 1);
         }
+        if (result2.startsWith("201")) {
+            result2 = zastap_zero_jedynkami_dla201(result2);
+        }
         if (pelny_plan_kont.contains(result2)) {
             return result2;
         }
@@ -129,12 +132,18 @@ public class Pojedynczy_rekord {
         if (result1.endsWith("-")) {
             result1 = result1.substring(0, result1.length() - 1);
         }
+        if (result1.startsWith("201")) {
+            result1 = zastap_zero_jedynkami_dla201(result1);
+        }
         if (pelny_plan_kont.contains(result1)) {
             return result1;
         }
         String result3 = wypelnij_zerami_przed_po(input, arr);
         if (result3.endsWith("-")) {
             result3 = result3.substring(0, result3.length() - 1);
+        }
+        if (result3.startsWith("201")) {
+            result3 = zastap_zero_jedynkami_dla201(result3);
         }
         if (pelny_plan_kont.contains(result3)) {
             return result3;
@@ -178,7 +187,7 @@ public class Pojedynczy_rekord {
         if (parts.length < arr.size()) {
             for (int i = 0; i < arr.size() - parts.length; i++) {
                 result += "-";
-                if(arr.size() - parts.length + i < arr.size()){
+                if (arr.size() - parts.length + i < arr.size()) {
                     for (int y = 0; y < arr.elementAt(arr.size() - parts.length + i); y++) {
                         result += "0";
                     }
@@ -276,12 +285,19 @@ public class Pojedynczy_rekord {
         }
     }
 
+    public String zastap_zero_jedynkami_dla201(String input) {
+        return input.replaceFirst("-0", "-1");
+    }
+
+
     public static void main(String[] args) throws IOException {
         Pojedynczy_rekord main = new Pojedynczy_rekord();
-        main.zaczytaj_wzory("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/dominika_problem/export 1.xlsx");
+        main.zaczytaj_wzory("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/wzory_14.xlsx");
         float result = main.zaczytaj_dane("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/Konta_PL14.xlsx",
-                "/Users/kamilgolawski/CGM/CGM-priv/autoMaping/dominika_problem/PPK.xlsx");
+                "/Users/kamilgolawski/CGM/CGM-priv/autoMaping/PL14_pelny_plan_kont_2024.xlsx");
         System.out.println(result);
+       
+
     }
 
 }
