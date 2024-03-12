@@ -119,14 +119,31 @@ public class Pojedynczy_rekord {
 
     public String wypelnij_zerami(String input, Vector<Integer> arr) {
         String result1 = wypelnij_zerami_za(input, arr);
-        String result2 = wypelnij_zerami_przed(input, arr);
+        if(result1.endsWith("-")) {
+            result1 = result1.substring(0, result1.length() - 1);
+        }
         if (pelny_plan_kont.contains(result1)) {
             return result1;
-        } else if (pelny_plan_kont.contains(result2)) {
+        }
+
+        String result2 = wypelnij_zerami_przed(input, arr);
+        if(result2.endsWith("-")) {
+            result2 = result1.substring(0, result1.length() - 1);
+        }
+        if (pelny_plan_kont.contains(result2)) {
             return result2;
         }
-        return input;
+        String result3 = wypelnij_zerami_przed_po(input, arr);
+        if(result3.endsWith("-")) {
+            result3 = result1.substring(0, result1.length() - 1);
+        }
+        if (pelny_plan_kont.contains(result3)) {
+            return result3;
+        }
+
+        return result1 + "/" + result2 + "/" + result3;
     }
+
 
     public static String wypelnij_zerami_za(String input, Vector<Integer> arr) {
         String konto_sys = extract_poziom(input);
@@ -201,6 +218,45 @@ public class Pojedynczy_rekord {
         return result;
     }
 
+    public String wypelnij_zerami_przed_po(String input, Vector<Integer> arr) {
+        String konto_sys = extract_poziom(input);
+        String result = "";
+        result += konto_sys;
+        input = extract_nizszy_poziom(input);
+        String[] parts = input.split("-");
+        for (int i = 0; i < parts.length && i < arr.size(); i++) {
+            if (arr.elementAt(i) == parts[i].length()) {
+                result += "-" + parts[i];
+            } else if (arr.elementAt(i) > parts[i].length()) {
+                result += "-";
+                if ((arr.elementAt(i) - parts[i].length()) % 2 == 0) {
+                    System.out.println("weszlo");
+                    for (int x = 0; x < (arr.elementAt(i) - parts[i].length()) / 2; x++) {
+                        result += "0";
+                    }
+                    result += parts[i];
+                    for (int x = 0; x < (arr.elementAt(i) - parts[i].length()) / 2; x++) {
+                        result += "0";
+                    }
+                } else {
+                    result += parts[i];
+                }
+            } else if (arr.elementAt(i) < parts[i].length()) {
+                result += "-";
+                if (parts[i].endsWith("00")) {
+                    result += parts[i].substring(0, arr.elementAt(i));
+                } else if (parts[i].startsWith("00")) {
+                    result += parts[i].substring(parts[i].length() - arr.elementAt(i), parts[i].length() - arr.elementAt(i) + arr.elementAt(1));
+                } else if (parts[i].endsWith("0")) {
+                    result += parts[i].substring(0, arr.elementAt(i));
+                } else if (parts[i].startsWith("0")) {
+                    result += parts[i].substring(parts[i].length() - arr.elementAt(i), parts[i].length() - arr.elementAt(i) + arr.elementAt(1));
+                }
+            }
+        }
+        return result;
+    }
+
     public static String extract_poziom(String input) {
         int indexOfDash = input.indexOf('-');
         if (indexOfDash != -1) {
@@ -217,6 +273,12 @@ public class Pojedynczy_rekord {
         } else {
             return input;
         }
+    }
+    public static void main(String[] args) throws IOException {
+        Pojedynczy_rekord main = new Pojedynczy_rekord();
+        main.zaczytaj_wzory("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/wzory_14.xlsx");
+        float result = main.zaczytaj_dane("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/Konta_PL14.xlsx", "/Users/kamilgolawski/CGM/CGM-priv/autoMaping/PL14_pelny_plan_kont_2024.xlsx");
+        System.out.println(result);
     }
 
 }
