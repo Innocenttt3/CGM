@@ -122,18 +122,12 @@ public class Pojedynczy_rekord {
         if (result2.endsWith("-")) {
             result2 = result2.substring(0, result2.length() - 1);
         }
-        if (result2.startsWith("201")) {
-            result2 = zastap_zero_jedynkami_dla201(result2);
-        }
         if (pelny_plan_kont.contains(result2)) {
             return result2;
         }
         String result1 = wypelnij_zerami_za(input, arr);
         if (result1.endsWith("-")) {
             result1 = result1.substring(0, result1.length() - 1);
-        }
-        if (result1.startsWith("201")) {
-            result1 = zastap_zero_jedynkami_dla201(result1);
         }
         if (pelny_plan_kont.contains(result1)) {
             return result1;
@@ -142,14 +136,11 @@ public class Pojedynczy_rekord {
         if (result3.endsWith("-")) {
             result3 = result3.substring(0, result3.length() - 1);
         }
-        if (result3.startsWith("201")) {
-            result3 = zastap_zero_jedynkami_dla201(result3);
-        }
         if (pelny_plan_kont.contains(result3)) {
             return result3;
         }
 
-        return result1 + "/" + result2 + "/" + result3;
+        return result2 + "/" + result1 + "/" + result3;
     }
 
 
@@ -296,7 +287,7 @@ public class Pojedynczy_rekord {
         float result = main.zaczytaj_dane("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/Konta_PL14.xlsx",
                 "/Users/kamilgolawski/CGM/CGM-priv/autoMaping/PL14_pelny_plan_kont_2024.xlsx");
         System.out.println(result);
-       
+
 
     }
 
