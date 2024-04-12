@@ -57,6 +57,7 @@ public class Pojedynczy_rekord {
         Sheet pierwszy_arkusz = plik_wejsciowy_excel.getSheetAt(0);
         int totalRows = pierwszy_arkusz.getPhysicalNumberOfRows();
         zaczytaj_pelny_plan_kont(sciezka_do_planu_kont);
+        przygotuj_ppk(pelny_plan_kont);
         for (Row row : pierwszy_arkusz) {
             if (row.getRowNum() > 0) {
                 Cell tmp = row.getCell(0);
@@ -99,7 +100,7 @@ public class Pojedynczy_rekord {
         Sheet pierwszy_arkusz = plik_wejsciowy_excel.getSheetAt(0);
         for (Row row : pierwszy_arkusz) {
             Cell tmp = row.getCell(2);
-            pelny_plan_kont.add(tmp.getStringCellValue().trim());
+            pelny_plan_kont.add(getCellValueAsString(tmp).trim());
         }
     }
 
@@ -257,6 +258,20 @@ public class Pojedynczy_rekord {
         }
         return result;
     }
+    public static void przygotuj_ppk(List<String> wzory){
+        for(String tmp: wzory){
+            tmp = removeUntil(tmp);
+        }
+    }
+
+    private static String removeUntil(String input) {
+        String until = "-*";
+        int index = input.indexOf(until);
+        if (index == -1) {
+            return input;
+        }
+        return input.substring(index + until.length());
+    }
 
     public static String extract_poziom(String input) {
         int indexOfDash = input.indexOf('-');
@@ -276,18 +291,25 @@ public class Pojedynczy_rekord {
         }
     }
 
+
     public String zastap_zero_jedynkami_dla201(String input) {
         return input.replaceFirst("-0", "-1");
     }
 
 
+
+    //TODO uzwgledniania bez zer wzorow
+    //TODO inna struktura 201 w pl14
+
+
+
     public static void main(String[] args) throws IOException {
         Pojedynczy_rekord main = new Pojedynczy_rekord();
         main.zaczytaj_wzory("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/wzory_14.xlsx");
-        float result = main.zaczytaj_dane("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/Konta_PL14.xlsx",
+        System.out.println(main.wzory);
+        float result = main.zaczytaj_dane("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/PL14_BO.xlsx",
                 "/Users/kamilgolawski/CGM/CGM-priv/autoMaping/PL14_pelny_plan_kont_2024.xlsx");
         System.out.println(result);
-
 
     }
 
