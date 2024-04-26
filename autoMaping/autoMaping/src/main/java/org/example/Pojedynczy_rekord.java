@@ -73,6 +73,9 @@ public class Pojedynczy_rekord {
                     } else {
                         przemapowany_numer_konta = wypelnij_zerami(obecny_numer_konta, wzory.get(konto_syntetyczne));
                         przemapowany_numer_konta = przemapowany_numer_konta.trim();
+                        if (konto_syntetyczne.equals("201")) {
+                            przemapowany_numer_konta = zastap_zero_jedynkami_dla201(przemapowany_numer_konta);
+                        }
                         System.out.println(przemapowany_numer_konta);
                         Cell cell = row.createCell(1);
                         Cell czy_zawiera = row.createCell(2);
@@ -244,6 +247,7 @@ public class Pojedynczy_rekord {
                     result += parts[i];
                 }
             } else if (arr.elementAt(i) < parts[i].length()) {
+                result += parts[i];
                 result += "-";
                 if (parts[i].endsWith("00")) {
                     result += parts[i].substring(0, arr.elementAt(i));
@@ -258,8 +262,9 @@ public class Pojedynczy_rekord {
         }
         return result;
     }
-    public static void przygotuj_ppk(List<String> wzory){
-        for(String tmp: wzory){
+
+    public static void przygotuj_ppk(List<String> wzory) {
+        for (String tmp : wzory) {
             tmp = removeUntil(tmp);
         }
     }
@@ -296,20 +301,42 @@ public class Pojedynczy_rekord {
         return input.replaceFirst("-0", "-1");
     }
 
+    public static void poprawExcela(String path) {
+        try (FileInputStream fis = new FileInputStream(path);
+             Workbook workbook = new XSSFWorkbook(fis)) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+
+            for (Row row : sheet) {
+                Cell cell = row.getCell(1);
+                if (cell != null) {
+                    String cellValue = cell.getStringCellValue();
+
+                    String newValue = cellValue.substring(0, cellValue.indexOf("/"));
+                    cell.setCellValue(newValue);
+                }
+            }
+            try (FileOutputStream fos = new FileOutputStream(path)) {
+                workbook.write(fos);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 
     //TODO uzwgledniania bez zer wzorow
     //TODO inna struktura 201 w pl14
 
 
-
     public static void main(String[] args) throws IOException {
         Pojedynczy_rekord main = new Pojedynczy_rekord();
         main.zaczytaj_wzory("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/wzory_14.xlsx");
-        System.out.println(main.wzory);
-        float result = main.zaczytaj_dane("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/PL14_BO.xlsx",
-                "/Users/kamilgolawski/CGM/CGM-priv/autoMaping/PL14_pelny_plan_kont_2024.xlsx");
-        System.out.println(result);
+//        float result = main.zaczytaj_dane("/Users/kamilgolawski/CGM/CGM-priv/FK_BO copy.xlsx",
+//                "/Users/kamilgolawski/CGM/CGM-priv/autoMaping/PL14_pelny_plan_kont_2024.xlsx");
+//        System.out.println(result);
+        poprawExcela("/Users/kamilgolawski/CGM/CGM-priv/FK_BO copy.xlsx");
 
     }
 
