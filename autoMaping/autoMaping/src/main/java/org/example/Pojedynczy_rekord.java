@@ -1,10 +1,12 @@
 package org.example;
 
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import javax.swing.*;
 import java.io.*;
+import java.sql.SQLOutput;
 import java.util.*;
 
 public class Pojedynczy_rekord {
@@ -61,31 +63,33 @@ public class Pojedynczy_rekord {
         for (Row row : pierwszy_arkusz) {
             if (row.getRowNum() > 0) {
                 Cell tmp = row.getCell(0);
-                if (tmp.getCellType() == CellType.NUMERIC) {
-                    przemapowany_numer_konta = String.valueOf(tmp.getNumericCellValue());
-                    przemapowany_numer_konta = przemapowany_numer_konta.trim();
-                } else if (tmp.getCellType() == CellType.STRING) {
-                    obecny_numer_konta = tmp.getStringCellValue();
-                    obecny_numer_konta = obecny_numer_konta.trim();
-                    konto_syntetyczne = extract_poziom(obecny_numer_konta);
-                    if (!wzory.containsKey(konto_syntetyczne)) {
-                        System.out.println("brak wzoru dla konta:" + konto_syntetyczne + "we wzorach");
-                    } else {
-                        przemapowany_numer_konta = wypelnij_zerami(obecny_numer_konta, wzory.get(konto_syntetyczne));
+                if (tmp != null) {
+                    if (tmp.getCellType() == CellType.NUMERIC) {
+                        przemapowany_numer_konta = String.valueOf(tmp.getNumericCellValue());
                         przemapowany_numer_konta = przemapowany_numer_konta.trim();
-                        if (konto_syntetyczne.equals("201")) {
-                            przemapowany_numer_konta = zastap_zero_jedynkami_dla201(przemapowany_numer_konta);
-                        }
-                        System.out.println(przemapowany_numer_konta);
-                        Cell cell = row.createCell(1);
-                        Cell czy_zawiera = row.createCell(2);
-                        cell.setCellValue(przemapowany_numer_konta);
-                        if (pelny_plan_kont.contains(przemapowany_numer_konta)) {
-                            System.out.println("zawiera");
-                            counter++;
-                            czy_zawiera.setCellValue("TAK");
+                    } else if (tmp.getCellType() == CellType.STRING) {
+                        obecny_numer_konta = tmp.getStringCellValue();
+                        obecny_numer_konta = obecny_numer_konta.trim();
+                        konto_syntetyczne = extract_poziom(obecny_numer_konta);
+                        if (!wzory.containsKey(konto_syntetyczne)) {
+                            System.out.println("brak wzoru dla konta:" + konto_syntetyczne + "we wzorach");
                         } else {
-                            czy_zawiera.setCellValue("NIE");
+                            przemapowany_numer_konta = wypelnij_zerami(obecny_numer_konta, wzory.get(konto_syntetyczne));
+                            przemapowany_numer_konta = przemapowany_numer_konta.trim();
+                            if (konto_syntetyczne.equals("201")) {
+                                przemapowany_numer_konta = zastap_zero_jedynkami_dla201(przemapowany_numer_konta);
+                            }
+                            System.out.println(przemapowany_numer_konta);
+                            Cell cell = row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                            Cell czy_zawiera = row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                            cell.setCellValue(przemapowany_numer_konta);
+                            if (pelny_plan_kont.contains(przemapowany_numer_konta)) {
+                                System.out.println("zawiera");
+                                counter++;
+                                czy_zawiera.setCellValue("TAK");
+                            } else {
+                                czy_zawiera.setCellValue("NIE");
+                            }
                         }
                     }
                 }
@@ -105,6 +109,8 @@ public class Pojedynczy_rekord {
             Cell tmp = row.getCell(2);
             pelny_plan_kont.add(getCellValueAsString(tmp).trim());
         }
+
+
     }
 
     private String getCellValueAsString(Cell cell) {
@@ -301,20 +307,32 @@ public class Pojedynczy_rekord {
         return input.replaceFirst("-0", "-1");
     }
 
-    public static void poprawExcela(String path) {
+    public void poprawExcela(String path, String pathToDoubleCheck) throws IOException {
+        zaczytaj_pelny_plan_kont(pathToDoubleCheck);
         try (FileInputStream fis = new FileInputStream(path);
              Workbook workbook = new XSSFWorkbook(fis)) {
 
             Sheet sheet = workbook.getSheetAt(0);
 
             for (Row row : sheet) {
-                Cell cell = row.getCell(1);
+                Cell cell = row.getCell(0);
                 if (cell != null) {
                     String cellValue = cell.getStringCellValue();
-
-                    String newValue = cellValue.substring(0, cellValue.indexOf("/"));
-                    cell.setCellValue(newValue);
+                    if (cellValue.startsWith("201")) {
+                        int slashIndex = cellValue.indexOf("/");
+                        if (slashIndex != -1) { // Check if "/" is present
+                            String newValue = cellValue.substring(0, slashIndex);
+                            if (pelny_plan_kont.contains(newValue)) {
+                                System.out.println("tak");
+                            } else {
+                                System.out.println("nie");
+                            }
+                            Cell newCell = row.createCell(cell.getColumnIndex() + 1);
+                            newCell.setCellValue(newValue);
+                        }
+                    }
                 }
+
             }
             try (FileOutputStream fos = new FileOutputStream(path)) {
                 workbook.write(fos);
@@ -326,17 +344,13 @@ public class Pojedynczy_rekord {
     }
 
 
-    //TODO uzwgledniania bez zer wzorow
-    //TODO inna struktura 201 w pl14
-
-
     public static void main(String[] args) throws IOException {
         Pojedynczy_rekord main = new Pojedynczy_rekord();
+        String ppkPath = "/Users/kamilgolawski/CGM/CGM-priv/autoMaping/PL14_pelny_plan_kont_2024.xlsx";
         main.zaczytaj_wzory("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/wzory_14.xlsx");
-//        float result = main.zaczytaj_dane("/Users/kamilgolawski/CGM/CGM-priv/FK_BO copy.xlsx",
-//                "/Users/kamilgolawski/CGM/CGM-priv/autoMaping/PL14_pelny_plan_kont_2024.xlsx");
+//        float result = main.zaczytaj_dane("/Users/kamilgolawski/CGM/CGM-priv/marzec.xlsx", ppkPath);
 //        System.out.println(result);
-        poprawExcela("/Users/kamilgolawski/CGM/CGM-priv/FK_BO copy.xlsx");
+        main.poprawExcela("/Users/kamilgolawski/CGM/CGM-priv/201marzec.xlsx", ppkPath);
 
     }
 
