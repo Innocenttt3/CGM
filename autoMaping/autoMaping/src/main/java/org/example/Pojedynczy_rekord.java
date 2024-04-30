@@ -320,12 +320,10 @@ public class Pojedynczy_rekord {
                     String cellValue = cell.getStringCellValue();
                     if (cellValue.startsWith("201")) {
                         int slashIndex = cellValue.indexOf("/");
-                        if (slashIndex != -1) { // Check if "/" is present
+                        if (slashIndex != -1) {
                             String newValue = cellValue.substring(0, slashIndex);
-                            if (pelny_plan_kont.contains(newValue)) {
-                                System.out.println("tak");
-                            } else {
-                                System.out.println("nie");
+                            if (!pelny_plan_kont.contains(newValue)) {
+                                System.out.println("nie dla konta " + newValue);
                             }
                             Cell newCell = row.createCell(cell.getColumnIndex() + 1);
                             newCell.setCellValue(newValue);
@@ -346,11 +344,12 @@ public class Pojedynczy_rekord {
 
     public static void main(String[] args) throws IOException {
         Pojedynczy_rekord main = new Pojedynczy_rekord();
-        String ppkPath = "/Users/kamilgolawski/CGM/CGM-priv/autoMaping/PL14_pelny_plan_kont_2024.xlsx";
-        main.zaczytaj_wzory("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/wzory_14.xlsx");
-//        float result = main.zaczytaj_dane("/Users/kamilgolawski/CGM/CGM-priv/marzec.xlsx", ppkPath);
-//        System.out.println(result);
-        main.poprawExcela("/Users/kamilgolawski/CGM/CGM-priv/201marzec.xlsx", ppkPath);
+        String ppkPath = "/Users/kamilgolawski/CGM/CGM-priv/pl07/pseudoppk.xlsx";
+        main.zaczytaj_wzory("/Users/kamilgolawski/CGM/CGM-priv/pl07/pl07wzory.xlsx");
+        float result = main.zaczytaj_dane("/Users/kamilgolawski/CGM/CGM-priv/pl07/kontaMApl07.xlsx", ppkPath);
+        System.out.println(main.pelny_plan_kont);
+        System.out.println(result);
+
 
     }
 
