@@ -1,5 +1,7 @@
 import pandas as pd
+import getpass
 import rapidfuzz
+import oracledb
 
 
 def get_single_synthetic_account(account_number):
@@ -30,18 +32,24 @@ def get_synthetic_accounts(accounts_to_map):
     return synthetic_accounts
 
 
-# def fetch_accounts(synthetic_accounts):
-#     accounts_dict = {}
-#     for i, account in enumerate(synthetic_accounts):
-#         accounts_dict[account] = list(range(i))
-#     return accounts_dict
-
-def fetch_accounts():
+def fetch_accounts(synthetic_accounts):
     accounts_dict = {}
-    new_acc = pd.read_excel('/Users/kamilgolawski/CGM/CGM-priv/testRapidaPPK.xlsx')
-    accounts_dict['200'] = new_acc['dane1']
-    accounts_dict['011'] = new_acc['dane2']
-    accounts_dict['070'] = new_acc['dane3']
+    connection = oracledb.connect(
+        user=lg,
+        password=pw,
+        dsn="localhost:8007/clinprd1")
+
+    query = f"SELECT * FROM fk.pelny_plan_kont WHERE account_number like :account_id%"
+
+    for account in synthetic_accounts:
+        params = {'account_id': account}
+        cursor = connection.cursor()
+        cursor.execute(query, params)
+        result = cursor.fetchall()
+        accounts_dict[account] = result
+        cursor.close()
+
+    connection.close()
     return accounts_dict
 
 
@@ -66,6 +74,5 @@ acc_column = data_to_map['test']
 acc_to_map = acc_column.tolist()
 
 synthetic_accounts = get_synthetic_accounts(acc_to_map)
-accounts_dict = fetch_accounts()
+accounts_dict = fetch_accounts(synthetic_accounts)
 process_excel(path_to_mapping_file)
-
