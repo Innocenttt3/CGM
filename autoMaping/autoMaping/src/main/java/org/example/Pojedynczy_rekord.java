@@ -315,7 +315,7 @@ public class Pojedynczy_rekord {
             Sheet sheet = workbook.getSheetAt(0);
 
             for (Row row : sheet) {
-                Cell cell = row.getCell(0);
+                Cell cell = row.getCell(1);
                 if (cell != null) {
                     String cellValue = cell.getStringCellValue();
                     if (cellValue.startsWith("201")) {
@@ -344,13 +344,9 @@ public class Pojedynczy_rekord {
 
     public static void main(String[] args) throws IOException {
         Pojedynczy_rekord main = new Pojedynczy_rekord();
-        String ppkPath = "/Users/kamilgolawski/CGM/CGM-priv/pl07/pseudoppk.xlsx";
-        main.zaczytaj_wzory("/Users/kamilgolawski/CGM/CGM-priv/pl07/pl07wzory.xlsx");
-        float result = main.zaczytaj_dane("/Users/kamilgolawski/CGM/CGM-priv/pl07/kontaMApl07.xlsx", ppkPath);
-        System.out.println(main.pelny_plan_kont);
-        System.out.println(result);
-
-
+        String ppkPath = "/Users/kamilgolawski/CGM/CGM-priv/autoMaping/PL14_pelny_plan_kont_2024.xlsx";
+        main.zaczytaj_wzory("/Users/kamilgolawski/CGM/CGM-priv/autoMaping/wzory_14.xlsx");
+        main.poprawExcela("/Users/kamilgolawski/Downloads/FK_BO 2.xlsx", ppkPath);
     }
 
 }
