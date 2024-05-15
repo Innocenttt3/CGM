@@ -23,6 +23,6 @@ df_z_nowymi_kontami = odczytaj_i_mapuj_konto_wn(plik_dane, mapping_dict)
 
 print(df_z_nowymi_kontami)
 
-plik_wyjsciowy = "/ścieżka/do/pliku/wynik.xlsx"  # Ścieżka do pliku wyjściowego
+plik_wyjsciowy = "/ścieżka/do/pliku/wynik.xlsx"
 df_z_nowymi_kontami.to_excel(plik_wyjsciowy, index=False)
 print("Zmodyfikowany DataFrame został zapisany do pliku:", plik_wyjsciowy)
