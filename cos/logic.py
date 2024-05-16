@@ -31,7 +31,8 @@ class AccountProcessor:
 
     def process_excel(self, path_to_mapping_file, column_name):
         main_data = pd.read_excel(path_to_mapping_file)
-        main_data['match_info'] = main_data[column_name].apply(lambda x: self.find_similar_account(x, self.accounts_dict))
+        main_data['match_info'] = main_data[column_name].apply(
+            lambda x: self.find_similar_account(x, self.accounts_dict))
         main_data['nowe'] = main_data['match_info'].apply(lambda x: x[0])
         main_data['% poprawnosci'] = main_data['match_info'].apply(lambda x: x[1])
         main_data.to_excel(path_to_mapping_file, index=False)
