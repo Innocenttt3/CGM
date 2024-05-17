@@ -63,7 +63,7 @@ class FileChooserApp(CTk):
         else:
             messagebox.showerror("Błąd", "Proszę wybrać plik Excel (.xlsx lub .xls)")
 
-    def get_dropdownmenu_values(self):
+    def get_combo_box_values(self):
         self.column_in_ppk = self.ppk_columns_dropdown.get()
         self.column_old_acc = self.mapping_columns_dropdown.get()
 
@@ -90,7 +90,7 @@ class FileChooserApp(CTk):
             messagebox.showerror("Błąd", f"Nie można odczytać pliku: {str(e)}")
 
     def execute_processing(self):
-        if self.get_dropdownmenu_values():
+        if self.get_combo_box_values():
             if self.ppk_path_file and self.map_path_file and self.column_in_ppk and self.column_old_acc:
                 processor = AccountProcessor()
                 processor.fetch_accounts_from_excel(self.ppk_path_file, self.column_in_ppk)
