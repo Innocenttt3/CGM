@@ -6,11 +6,6 @@ from logic import AccountProcessor
 
 
 class FileChooserApp(CTk):
-    ppk_path_file = None
-    map_path_file = None
-    column_in_ppk = ''
-    column_old_acc = ''
-
     def __init__(self, master=None, **kwargs):
         super().__init__(master, **kwargs)
         self.title('Auto Mapowanie Kont')
@@ -19,7 +14,7 @@ class FileChooserApp(CTk):
         self.column_in_ppk = ''
         self.column_old_acc = ''
         self.ppk_all_columns_names = []
-        self.map_all_columns_names = ''
+        self.map_all_columns_names = []
         self.master = master
         self.geometry('450x250')
         set_appearance_mode('dark')
@@ -64,12 +59,11 @@ class FileChooserApp(CTk):
             normalized_path = os.path.normpath(file_path)
             self.map_path_file = normalized_path
             self._fetch_columns_names(self.map_path_file, 'map')
-            # Enable the combobox and populate it with column names
             self._populate_combobox(self.mapping_columns_dropdown, self.map_all_columns_names)
         else:
             messagebox.showerror("Błąd", "Proszę wybrać plik Excel (.xlsx lub .xls)")
 
-    def get_entry_values(self):
+    def get_dropdownmenu_values(self):
         self.column_in_ppk = self.ppk_columns_dropdown.get()
         self.column_old_acc = self.mapping_columns_dropdown.get()
 
@@ -96,19 +90,15 @@ class FileChooserApp(CTk):
             messagebox.showerror("Błąd", f"Nie można odczytać pliku: {str(e)}")
 
     def execute_processing(self):
-        if self.get_entry_values():
+        if self.get_dropdownmenu_values():
             if self.ppk_path_file and self.map_path_file and self.column_in_ppk and self.column_old_acc:
                 processor = AccountProcessor()
                 processor.fetch_accounts_from_excel(self.ppk_path_file, self.column_in_ppk)
                 processor.process_excel(self.map_path_file, self.column_old_acc)
 
-    def _populate_combobox(self, combobox, column_names):
-        # Clear existing options
-        combobox['values'] = ()
-        # Add new options
-        combobox['values'] = column_names
-        # Enable the combobox
-        combobox['state'] = 'normal'
+    @staticmethod
+    def _populate_combobox(combobox, column_names):
+        combobox.configure(state='normal', values=column_names)
 
 
 if __name__ == "__main__":
