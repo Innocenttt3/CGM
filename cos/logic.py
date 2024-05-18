@@ -36,6 +36,7 @@ class AccountProcessor:
         main_data['nowe'] = main_data['match_info'].apply(lambda x: x[0])
         main_data['% poprawnosci'] = main_data['match_info'].apply(lambda x: x[1])
         main_data.to_excel(path_to_mapping_file, index=False)
+        print("Gotowe")
 
     def find_similar_account(self, old_account_number, accounts_dict):
         synthetic_account = self.get_single_synthetic_account(old_account_number)
