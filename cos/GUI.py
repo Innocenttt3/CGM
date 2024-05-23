@@ -3,6 +3,7 @@ import os
 from tkinter import filedialog, messagebox
 import pandas as pd
 from logic import AccountProcessor
+from threading import Thread
 
 
 class FileChooserApp(CTk):
@@ -16,7 +17,7 @@ class FileChooserApp(CTk):
         self.ppk_all_columns_names = []
         self.map_all_columns_names = []
         self.master = master
-        self.geometry('450x250')
+        self.geometry('450x300')
         set_appearance_mode('dark')
 
         # PPK file button
@@ -39,9 +40,14 @@ class FileChooserApp(CTk):
 
         # Execute button
         self.execute_button = CTkButton(master=self, text='Wykonaj', text_color='white',
-                                        command=self.execute_processing, width=200)
+                                        command=self.start_processing_thread, width=200)
         self.execute_button.grid(row=2, columnspan=2, padx=10, pady=10)
         self.execute_button.configure(fg_color="#00008B")
+
+        # Progress bar
+        self.progress_bar = CTkProgressBar(master=self, width=400)
+        self.progress_bar.grid(row=3, columnspan=2, padx=10, pady=10)
+        self.progress_bar.set(0)
 
     def choose_ppk_file(self):
         file_path = filedialog.askopenfilename()
@@ -89,12 +95,23 @@ class FileChooserApp(CTk):
         except Exception as e:
             messagebox.showerror("Błąd", f"Nie można odczytać pliku: {str(e)}")
 
-    def execute_processing(self):
+    def start_processing_thread(self):
         if self.get_combo_box_values():
-            if self.ppk_path_file and self.map_path_file and self.column_in_ppk and self.column_old_acc:
-                processor = AccountProcessor()
-                processor.fetch_accounts_from_excel(self.ppk_path_file, self.column_in_ppk)
-                processor.process_excel(self.map_path_file, self.column_old_acc)
+            processing_thread = Thread(target=self.execute_processing)
+            processing_thread.start()
+
+    def execute_processing(self):
+        if self.ppk_path_file and self.map_path_file and self.column_in_ppk and self.column_old_acc:
+            processor = AccountProcessor()
+            processor.fetch_accounts_from_excel(self.ppk_path_file, self.column_in_ppk)
+            total_rows = processor.get_total_rows(self.map_path_file)
+            self.progress_bar.set(0)
+
+            for progress in processor.process_excel(self.map_path_file, self.column_old_acc):
+                self.progress_bar.set(progress)
+                self.update_idletasks()
+
+            messagebox.showinfo("Informacja", "Gotowe")
 
     @staticmethod
     def _populate_combobox(combobox, column_names):
